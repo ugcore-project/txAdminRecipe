@@ -1,0 +1,9 @@
+# Copied to .gitignore in the server folder, for owners who keep it in git.
+# secrets.cfg holds the license key and the database password: it MUST never be committed.
+/secrets.cfg
+
+# FXServer and txAdmin runtime files.
+/cache/
+/db/
+/txData/
+*.log

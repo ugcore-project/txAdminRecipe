@@ -1,0 +1,190 @@
+# UgCore txAdmin recipe.
+# Paste this URL in txAdmin's Server Deployer, under "Remote URL Template":
+#   https://raw.githubusercontent.com/ugcore-project/txAdminRecipe/main/ugcore.yaml
+#
+# txAdmin shows this file before it runs. Edit it there to change the variables below,
+# or delete a resource block to leave that resource out.
+
+$engine: 3
+$onesync: on
+name: UgCore
+version: 1.0.0
+author: UgCore Framework
+description: >-
+  Secure, modular roleplay framework. Installs ug-core, ug-lib and the UgCore resources from their latest releases,
+  oxmysql and pma-voice, with an organized server.cfg split into secrets, convars, permissions and resources.
+
+variables:
+  # The game build every client runs. Newer builds bring newer clothes, vehicles and map changes.
+  # https://docs.fivem.net/docs/server-manual/server-commands/#sv_enforcegamebuild-build
+  gameBuild: 3407
+
+tasks:
+  # ---------------------------------------------------------------------------------------------------------------
+  # Server files: server.cfg and the files it runs.
+  # ---------------------------------------------------------------------------------------------------------------
+  - action: download_github
+    src: https://github.com/ugcore-project/txAdminRecipe
+    ref: main
+    subpath: server-data
+    dest: ./tmp/recipe
+
+  - action: move_path
+    src: ./tmp/recipe/server.cfg
+    dest: ./server.cfg
+
+  - action: move_path
+    src: ./tmp/recipe/secrets.cfg
+    dest: ./secrets.cfg
+
+  - action: move_path
+    src: ./tmp/recipe/convars.cfg
+    dest: ./convars.cfg
+
+  - action: move_path
+    src: ./tmp/recipe/permissions.cfg
+    dest: ./permissions.cfg
+
+  - action: move_path
+    src: ./tmp/recipe/resources.cfg
+    dest: ./resources.cfg
+
+  - action: move_path
+    src: ./tmp/recipe/gitignore
+    dest: ./.gitignore
+
+  - action: move_path
+    src: ./tmp/recipe/resources
+    dest: ./resources
+
+  # Fills the license key, database, endpoints, slots, game build and the txAdmin master as admin.
+  - action: replace_string
+    mode: all_vars
+    file:
+      - ./server.cfg
+      - ./secrets.cfg
+      - ./permissions.cfg
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # Database. ug-core creates and migrates its own tables on the first start: no SQL file is needed.
+  # ---------------------------------------------------------------------------------------------------------------
+  - action: connect_database
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # [cfx]: the base resources from cfx-server-data. Chat is built into FXServer (resources_useSystemChat).
+  # cfx-server-data dropped hardcap and sessionmanager: FXServer enforces sv_maxclients and OneSync runs sessions.
+  # basic-gamemode is left out on purpose: it turns spawnmanager auto-spawn back on, and ug-core owns spawning.
+  # ---------------------------------------------------------------------------------------------------------------
+  - action: download_github
+    src: https://github.com/citizenfx/cfx-server-data
+    ref: master
+    subpath: resources
+    dest: ./tmp/cfx
+
+  - action: move_path
+    src: ./tmp/cfx/[managers]/mapmanager
+    dest: ./resources/[cfx]/mapmanager
+
+  - action: move_path
+    src: ./tmp/cfx/[managers]/spawnmanager
+    dest: ./resources/[cfx]/spawnmanager
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # [standalone]: third-party resources UgCore works with.
+  # ---------------------------------------------------------------------------------------------------------------
+  # Required by ug-core.
+  - action: download_file
+    url: https://github.com/overextended/oxmysql/releases/latest/download/oxmysql.zip
+    path: ./tmp/oxmysql.zip
+
+  - action: unzip
+    src: ./tmp/oxmysql.zip
+    dest: ./resources/[standalone]
+
+  # Voice. ug-hud shows its modes. pma-voice publishes no release archive, so the recipe pins a tag.
+  - action: download_github
+    src: https://github.com/AvarianKnight/pma-voice
+    ref: v6.6.2
+    dest: ./resources/[standalone]/pma-voice
+
+  - action: remove_path
+    path: ./resources/[standalone]/pma-voice/voice-ui
+
+  - action: remove_path
+    path: ./resources/[standalone]/pma-voice/docs
+
+  - action: remove_path
+    path: ./resources/[standalone]/pma-voice/.github
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # [ug]: UgCore, from the latest release of each resource.
+  # ---------------------------------------------------------------------------------------------------------------
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-lib/releases/latest/download/ug-lib.zip
+    path: ./tmp/ug-lib.zip
+
+  - action: unzip
+    src: ./tmp/ug-lib.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-core/releases/latest/download/ug-core.zip
+    path: ./tmp/ug-core.zip
+
+  - action: unzip
+    src: ./tmp/ug-core.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-multicharacter/releases/latest/download/ug-multicharacter.zip
+    path: ./tmp/ug-multicharacter.zip
+
+  - action: unzip
+    src: ./tmp/ug-multicharacter.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-appearance/releases/latest/download/ug-appearance.zip
+    path: ./tmp/ug-appearance.zip
+
+  - action: unzip
+    src: ./tmp/ug-appearance.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-hud/releases/latest/download/ug-hud.zip
+    path: ./tmp/ug-hud.zip
+
+  - action: unzip
+    src: ./tmp/ug-hud.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-target/releases/latest/download/ug-target.zip
+    path: ./tmp/ug-target.zip
+
+  - action: unzip
+    src: ./tmp/ug-target.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-inventory/releases/latest/download/ug-inventory.zip
+    path: ./tmp/ug-inventory.zip
+
+  - action: unzip
+    src: ./tmp/ug-inventory.zip
+    dest: ./resources/[ug]
+
+  - action: download_file
+    url: https://github.com/ugcore-project/ug-admin/releases/latest/download/ug-admin.zip
+    path: ./tmp/ug-admin.zip
+
+  - action: unzip
+    src: ./tmp/ug-admin.zip
+    dest: ./resources/[ug]
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # Clean up.
+  # ---------------------------------------------------------------------------------------------------------------
+  - action: remove_path
+    path: ./tmp
